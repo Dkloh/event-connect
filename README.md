@@ -150,6 +150,10 @@ Your site will be live at `your-project.web.app`
 - Firebase (Auth, Firestore, Hosting)
 - No framework required
 
+## About This Project
+
+This is a learning project demonstrating modern web development with Firebase. Built with AI assistance for scaffolding and setup, allowing focus on learning architecture, authentication flows, and security best practices. The project showcases responsive design, authentication patterns, and real-time data management with Firestore.
+
 ---
 
 **Version:** 1.0
