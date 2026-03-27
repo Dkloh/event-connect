@@ -1,18 +1,20 @@
-# Quick Start Guide
+# Quick Start
 
-Get your Event Scheduler running in 5 minutes!
+Get Event Scheduler running locally in about 5 minutes.
 
-## 1. Firebase Setup (2 minutes)
+## 1. Create and Configure Firebase
 
-1. Go to [Firebase Console](https://console.firebase.google.com)
-2. Create a new project
-3. Enable Authentication → Email/Password + Google
-4. Add `localhost` to authorized domains
-5. Copy your Firebase config
+1. Go to [Firebase Console](https://console.firebase.google.com).
+2. Create a new project.
+3. Enable Authentication providers:
+   - Email/Password
+   - Google
+4. Add `localhost` to authorized domains.
+5. Copy your Firebase web app config values.
 
-## 2. Configure App (1 minute)
+## 2. Add Your Firebase Config
 
-Edit `js/firebase-config.js`:
+Update `js/firebase-config.js`:
 
 ```javascript
 const firebaseConfig = {
@@ -25,47 +27,53 @@ const firebaseConfig = {
 };
 ```
 
-## 3. Run Locally (30 seconds)
+## 3. Start the App
+
+Use either command:
+
+```bash
+npm start
+```
+
+or
 
 ```bash
 python -m http.server 8000
 ```
 
-Open: http://localhost:8000
+Open [http://localhost:8000](http://localhost:8000).
 
-## 4. Test It
+## 4. Smoke Test
 
-1. Go to `/login.html`
-2. Click "Sign Up" and create account
-3. Or use Google sign-in
+1. Open `/login.html`.
+2. Create an account with Sign Up.
+3. Sign out and sign back in.
+4. Test Google sign-in.
+5. Open `/schedule.html` and create a sample event.
+6. Verify the event appears after refresh.
 
-Done! ✅
+If all checks pass, your local setup is working.
 
-## Setting Up Your First Admin Account
+## 5. Set Your First Admin User
 
-1. Create a regular account and sign in
-2. Go to [Firebase Console](https://console.firebase.google.com) → Your Project
-3. Navigate to **Authentication → Users**
-4. Click the user you want to make admin
-5. Click **Custom Claims** (scroll to bottom)
-6. Add this JSON:
+1. Create a normal user account and sign in once.
+2. In Firebase Console, open your project.
+3. Go to Firestore Database -> Data.
+4. Create collection `admins` (if needed).
+5. Add a document where the document ID is the user's Firebase Auth UID.
+6. Add this field to the document:
 
 ```json
 {
-  "admin": true
+  "isAdmin": true
 }
 ```
 
-7. Click **Update**
+7. Save changes and sign the user out/in again.
 
-The admin user will now:
-- See the "Admin" link in navigation
-- Access the admin dashboard
-- Manage all events and registrations
+Admin users can access `/admin.html` and admin-only controls.
 
-**Note:** Only users with the `admin: true` custom claim can access the admin page.
-
-## Deploy to Firebase (Optional)
+## Optional: Deploy to Firebase Hosting
 
 ```bash
 npm install -g firebase-tools
@@ -74,18 +82,22 @@ firebase init
 firebase deploy
 ```
 
-Your site will be at: `your-project.web.app`
+Site URL format: `your-project.web.app`
 
 ## Troubleshooting
 
-**Google sign-in not working?**
-- Check `localhost` is in Firebase authorized domains
-- Hard refresh: Ctrl+Shift+R
+Google sign-in fails:
+- Confirm `localhost` is in Firebase authorized domains.
+- Hard refresh the browser with `Ctrl+Shift+R`.
 
-**Can't login?**
-- Check Firebase authentication is enabled
-- Open DevTools Console (F12) for errors
+Login fails:
+- Verify auth providers are enabled in Firebase.
+- Check browser console errors.
+
+Events do not save:
+- Confirm Firestore database is created.
+- Check Firestore rules for authenticated read/write.
 
 ---
 
-**Need more details?** See [README.md](README.md)
+For full setup details and project notes, see [README.md](README.md).

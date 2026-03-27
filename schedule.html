@@ -45,10 +45,15 @@
         if (nameEl) nameEl.textContent = name.split(' ')[0];
         
         // Check admin status and show admin link
-        isUserAdmin((isAdmin) => {
+        if (typeof window.isUserAdmin === 'function') {
+          window.isUserAdmin((isAdmin) => {
+            const adminLink = document.getElementById('adminNavLink');
+            if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
+          });
+        } else {
           const adminLink = document.getElementById('adminNavLink');
-          if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
-        });
+          if (adminLink) adminLink.style.display = 'none';
+        }
       } else {
         if (avatarEl) avatarEl.textContent = '?';
         if (nameEl) nameEl.textContent = 'Guest';
@@ -71,7 +76,7 @@
       
       <!-- Check if user is registered -->
       <div id="notRegistered" class="alert alert-warning" style="display: none;">
-        <h3>⚠️ Registration Required</h3>
+        <h3>Registration Required</h3>
         <p id="regMessage">You need to register for the event before you can schedule meetings.</p>
         <div style="margin-top: 15px;">
           <a id="regActionBtn" href="register.html" class="btn btn-primary">Register for Event</a>
@@ -86,7 +91,7 @@
         <div class="user-banner">
           <div class="user-info">
             <h2>Welcome, <span id="welcomeUserName"></span>!</h2>
-            <p>📅 Schedule your <strong>1-on-1 meetings</strong> for <strong id="schedulerEventName"></strong></p>
+            <p>Schedule your <strong>1-on-1 meetings</strong> for <strong id="schedulerEventName"></strong></p>
           </div>
           <div class="booking-stats">
             <div class="stat">
@@ -102,7 +107,7 @@
 
         <!-- Event Timeline/Agenda -->
         <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 30px; border-left: 4px solid #2563eb;">
-          <h3 style="margin-top: 0; color: #1f2937;">📅 Event Schedule</h3>
+          <h3 style="margin-top: 0; color: #1f2937;">Event Schedule</h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
             <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
               <div style="font-weight: 600; color: #2563eb; margin-bottom: 5px;">9:00 AM - 10:00 AM</div>
@@ -110,7 +115,7 @@
             </div>
             <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
               <div style="font-weight: 600; color: #2563eb; margin-bottom: 5px;">10:00 AM - 12:00 PM</div>
-              <div style="color: #374151; font-size: 14px;">1-on-1 Meeting Sessions ✓</div>
+              <div style="color: #374151; font-size: 14px;">1-on-1 Meeting Sessions</div>
             </div>
             <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
               <div style="font-weight: 600; color: #2563eb; margin-bottom: 5px;">12:00 PM - 1:00 PM</div>
@@ -118,7 +123,7 @@
             </div>
             <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
               <div style="font-weight: 600; color: #2563eb; margin-bottom: 5px;">1:00 PM - 4:00 PM</div>
-              <div style="color: #374151; font-size: 14px;">1-on-1 Meeting Sessions ✓</div>
+              <div style="color: #374151; font-size: 14px;">1-on-1 Meeting Sessions</div>
             </div>
             <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
               <div style="font-weight: 600; color: #2563eb; margin-bottom: 5px;">4:00 PM - 5:00 PM</div>
@@ -168,7 +173,6 @@
             <h3 class="sidebar-title">My Schedule</h3>
             
             <div id="noBookings" class="empty-state">
-              <div class="empty-icon">📅</div>
               <p>No meetings scheduled yet</p>
               <p class="empty-help">Select time slots to book meetings</p>
             </div>
@@ -229,13 +233,6 @@
     </div>
   </footer>
 
- <!-- Auth Protection -->
-  <script>
-    if (!localStorage.getItem('currentUser')) {
-      window.location.href = 'login.html';
-    }
-  </script>
-
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
@@ -259,6 +256,17 @@
         window.location.href = 'login.html';
       }
     };
+
+    // Route protection based on Firebase auth state
+    function enforceAuthRedirect() {
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = 'login.html';
+        }
+      });
+    }
+
+    enforceAuthRedirect();
   </script>
   
   <script src="js/scheduler.js"></script>

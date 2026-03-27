@@ -1,85 +1,76 @@
 # Security Guide
 
-## Overview
+This document explains the security model used in this project and how to harden it for production.
 
-This application implements security best practices to protect user data and prevent common web vulnerabilities.
+## Security Model at a Glance
 
-## Security Features
+- Authentication is handled by Firebase Authentication (email/password and Google sign-in).
+- Authorization is enforced with Firestore Security Rules.
+- Admin access is determined by documents in the `admins` collection.
+- Input validation and sanitization are performed on the client using `js/security.js`.
 
-### 1. Input Validation
-All user inputs are validated before processing:
-- **Email**: RFC 5322 compliant validation
-- **Password**: Minimum 6 characters required
-- **Forms**: Client-side validation with security checks
+## Implemented Protections
+
+### 1. Input Validation and Sanitization
+
+The app validates user input and sanitizes text before processing.
+
+Available utilities in `js/security.js`:
+
+```javascript
+SecurityUtils.sanitizeInput(input)
+SecurityUtils.sanitizeHTML(html)
+SecurityUtils.validateEmail(email)
+SecurityUtils.validatePassword(password)
+SecurityUtils.escapeHTML(text)
+SecurityUtils.isValidString(text, min, max)
+```
+
+Notes:
+- Email validation uses a practical regex, not full RFC validation.
+- Password validation checks length, lowercase, uppercase, and numeric characters.
 
 ### 2. Authentication
-- Firebase Authentication (email/password and Google OAuth)
-- Secure session management
-- Automatic token refresh
-- Secure logout
 
-### 3. Data Protection
-- HTTPS enforced via Firebase Hosting
-- Firebase encryption at rest
-- Firestore security rules prevent unauthorized access
-- No sensitive data in browser localStorage
+- Firebase Auth session handling
+- Email/password login and signup
+- Google OAuth sign-in
+- Persistent auth state via Firebase SDK
 
-### 4. Attack Prevention
-- **XSS Prevention**: Input sanitization removes malicious scripts
-- **CSRF Protection**: Firebase handles token validation
-- **Injection Prevention**: Firestore parameterized queries
+### 3. Firestore Authorization
 
-## Security Utilities (js/security.js)
+- Users can read/write their own profile and booking data.
+- Registration and event access is restricted to authenticated users.
+- Admin-only behavior is enforced through the `admins/{uid}` document check in rules.
 
-```javascript
-SecurityUtils.sanitizeInput(input)     // Remove harmful scripts
-SecurityUtils.validateEmail(email)     // Check email format
-SecurityUtils.validatePassword(pass)   // Check password strength
-SecurityUtils.escapeHTML(text)         // Escape HTML characters
-```
+### 4. Browser and Hosting Headers
 
-## Firestore Security Rules
-
-Add these rules in Firebase Console → Firestore → Rules:
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    // Users can only access their own data
-    match /users/{userId} {
-      allow read, write: if request.auth.uid == userId;
-    }
-    
-    // Events accessible to authenticated users
-    match /events/{eventId} {
-      allow read: if request.auth.uid != null;
-      allow write: if request.auth.uid == resource.data.createdBy;
-    }
-  }
-}
-```
-
-## Best Practices
-
-1. **Always use HTTPS** in production
-2. **Never commit API keys** to version control
-3. **Set strong password requirements** for users
-4. **Validate all inputs** on both client and server
-5. **Keep Firebase SDK updated** for latest security patches
-
-## Security Headers
-
-These are automatically configured in `firebase.json`:
-- Content-Security-Policy
+Configured in `firebase.json`:
+- Content-Security-Policy (for JS/CSS responses)
 - X-Frame-Options: DENY
 - X-Content-Type-Options: nosniff
 - X-XSS-Protection
+- Referrer-Policy: strict-origin-when-cross-origin
+
+## Important Clarifications
+
+- Firebase web config values are public identifiers, not private secrets.
+- Real protection comes from strict Firestore rules and Auth checks.
+- Do not store sensitive secrets in frontend code.
+
+## Production Hardening Checklist
+
+1. Enforce least-privilege Firestore rules for each collection.
+2. Restrict admin reads/writes to true admin users only.
+3. Add rate limiting and abuse controls through backend functions where needed.
+4. Add server-side validation for any critical workflows.
+5. Rotate credentials and monitor Firebase usage/audit logs.
+6. Keep Firebase SDK dependencies updated.
 
 ## Reporting Security Issues
 
-If you find a security vulnerability, please report it privately rather than creating a public issue.
+If you discover a security issue, report it privately and avoid posting exploit details publicly.
 
 ---
 
-**Last Updated:** January 29, 2026
+Last updated: March 27, 2026

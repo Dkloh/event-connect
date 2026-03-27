@@ -1,160 +1,152 @@
-# Event Scheduler
+# Event Scheduler Demo
 
-A professional event scheduling web application with secure authentication and responsive design.
+A beginner-friendly event scheduling web app built as a learning and portfolio project.
 
-## Features
+This project focuses on practical web development skills: authentication, protected pages, form handling, role-based access, and Firebase integration.
 
-- **User Authentication**: Email/password and Google OAuth sign-in
-- **Event Management**: Create, view, and manage events
-- **Responsive Design**: Works on desktop, tablet, and mobile
-- **Secure**: Input validation and Firebase security
-- **User Feedback**: Built-in feedback form
+## Highlights
 
-## Quick Start
-
-1. **Setup Firebase**
-   - Create a Firebase project at [console.firebase.google.com](https://console.firebase.google.com)
-   - Enable Email/Password and Google authentication
-   - Add `localhost` to authorized domains
-
-2. **Configure**
-   - Update `js/firebase-config.js` with your Firebase credentials
-
-3. **Run Locally**
-   ```bash
-   # Using Python
-   python -m http.server 8000
-   
-   # Or any local server
-   npm start
-   ```
-
-4. **Open in browser**
-   - Visit `http://localhost:8000`
-
-## Firebase Setup
-
-1. **Create Project**
-   - Go to [Firebase Console](https://console.firebase.google.com)
-   - Create a new project
-
-2. **Enable Authentication**
-   - Go to Authentication → Sign-in method
-   - Enable Email/Password
-   - Enable Google
-
-3. **Get Config**
-   - Go to Project Settings → General
-   - Scroll to "Your apps" → Web app
-   - Copy the config values
-
-4. **Update Config File**
-   Edit `js/firebase-config.js`:
-   ```javascript
-   const firebaseConfig = {
-     apiKey: "YOUR_API_KEY",
-     authDomain: "YOUR_AUTH_DOMAIN",
-     projectId: "YOUR_PROJECT_ID",
-     storageBucket: "YOUR_STORAGE_BUCKET",
-     messagingSenderId: "YOUR_SENDER_ID",
-     appId: "YOUR_APP_ID"
-   };
-   ```
-
-5. **Add Authorized Domain**
-   - Authentication → Settings → Authorized domains
-   - Add `localhost` for local development
-
-## Authentication
-
-### Google OAuth Setup
-
-1. Go to [Firebase Console](https://console.firebase.google.com/)
-2. Select your project
-3. Deployment to Firebase
-
-1. **Install Firebase CLI**
-   ```bash
-   npm install -g firebase-tools
-   ```
-
-2. **Login**
-   ```bash
-   firebase login
-   ```
-
-3. **Initialize**
-   ```bash
-   firebase init
-   ```
-   - Select Hosting
-   - Choose your project
-   - Set public directory to `.` (current folder)
-
-4. **Deploy**
-   ```bash
-   firebase deploy
-   ```
-
-Your site will be live at `your-project.web.app`
-
-## Security Features
-
-- Input validation on all forms
-- XSS attack prevention
-- Secure Firebase authentication
-- Password strength requirements
-- Email validation
-
-## Pages
-
-- `index.html` - Home/landing page
-- `login.html` - Login and signup
-- `schedule.html` - Event management
-- `admin.html` - Admin dashboard
-- `feedback.html` - User feedback formCLI:
-   ```bash
-   npm install -g firebase-tools
-   ```
-
-2. Initialize Firebase:
-   ```bash
-   firebase init
-   ```
-
-3. Deploy:
-   ```bash
-   Troubleshooting
-
-**Google OAuth not working?**
-- Make sure `localhost` is in Firebase authorized domains
-- Hard refresh browser (Ctrl+Shift+R)
-
-**Can't login?**
-- Check Firebase authentication is enabled
-- Check browser console for errors
-
-**Events not saving?**
-- Ensure Firestore database is created in Firebase
-- Check security rules allow authenticated users
-
-## Customization
-
-- **Colors**: Edit CSS variables in `css/styles.css`
-- **Branding**: Update logo and text in HTML files
-- **Features**: Modify JavaScript files in `js/` folder
+- Email/password authentication with Firebase Auth
+- Google sign-in support
+- Event scheduling and basic event management flows
+- Admin-only access path using Firestore `admins/{uid}` checks
+- Feedback page for collecting user input
+- Responsive layout for desktop and mobile
 
 ## Tech Stack
 
-- HTML5, CSS3, JavaScript
-- Firebase (Auth, Firestore, Hosting)
-- No framework required
+- HTML5
+- CSS3
+- Vanilla JavaScript
+- Firebase Authentication
+- Firestore
+- Firebase Hosting
 
-## About This Project
+## Project Goals
 
-This is a learning project demonstrating modern web development with Firebase. Built with AI assistance for scaffolding and setup, allowing focus on learning architecture, authentication flows, and security best practices. The project showcases responsive design, authentication patterns, and real-time data management with Firestore.
+- Learn real-world auth and data flow basics
+- Practice secure frontend patterns
+- Build a complete project suitable for a portfolio
+
+## Quick Start
+
+### 1. Prerequisites
+
+- A Firebase project
+- Python 3 (or another local static server)
+
+### 2. Configure Firebase
+
+1. Go to <https://console.firebase.google.com> and create a project.
+2. Enable Authentication methods:
+   - Email/Password
+   - Google
+3. Add `localhost` to authorized domains.
+4. Copy your Firebase web config values.
+
+### 3. Set app config
+
+Create or update `js/firebase-config.js` with your values:
+
+```javascript
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+```
+
+### 4. Run locally
+
+Use one of these:
+
+```bash
+npm start
+```
+
+or
+
+```bash
+python -m http.server 8000
+```
+
+Open: <http://localhost:8000>
+
+## Admin Setup
+
+To make a user an admin, create an admin marker document in Firestore:
+
+1. Go to Firebase Console -> Firestore Database -> Data.
+2. Create collection `admins` (if it does not exist).
+3. Create a document with ID set to the user's Firebase Auth UID.
+4. Add this field:
+
+```json
+{
+  "isAdmin": true
+}
+```
+
+Then sign the user out and back in.
+
+## Deployment
+
+If deploying with Firebase Hosting:
+
+```bash
+npm install -g firebase-tools
+firebase login
+firebase init
+firebase deploy
+```
+
+Your site will be available at `your-project.web.app`.
+
+## Project Structure
+
+- `index.html`: Landing page
+- `login.html`: Login/sign-up screen
+- `schedule.html`: Scheduling flow
+- `admin.html`: Admin interface
+- `feedback.html`: Feedback form
+- `js/`: Authentication, scheduling, security, and page logic
+- `css/styles.css`: Shared styling
+
+## Security Notes
+
+- Validate inputs on every form
+- Keep Firebase security rules strict
+- Do not expose sensitive keys outside Firebase-supported public config usage
+- Use role checks before loading admin features
+
+## Troubleshooting
+
+- Google sign-in fails:
+  - Confirm `localhost` is in authorized domains
+  - Hard refresh browser (`Ctrl+Shift+R`)
+- Login fails:
+  - Verify auth methods are enabled in Firebase
+  - Check browser console for Firebase errors
+- Data not saving:
+  - Confirm Firestore is created
+  - Verify Firestore security rules for authenticated users
+
+## About This Build
+
+This is my first full web app project and part of my learning journey.
+
+I used AI assistance for scaffolding and troubleshooting while I focused on understanding architecture, authentication flows, and implementation details. All final decisions, edits, and testing were done as part of the learning process.
+
+## Next Improvements
+
+- Add automated tests for core flows
+- Improve error messaging and empty states
+- Add edit/delete event controls with stronger validation
+- Add analytics and usage tracking
 
 ---
 
-**Version:** 1.0
-**Last Updated:**
+For quick setup steps, see `QUICKSTART.md`.

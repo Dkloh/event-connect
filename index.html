@@ -29,27 +29,19 @@
 </nav>
 
 <script>
-  // Check if user is admin
-  function isUserAdmin(callback) {
-    if (typeof auth === 'undefined') {
-      setTimeout(() => isUserAdmin(callback), 100);
+  // Resolve admin status using global helper from firebase-auth.js
+  function getAdminStatus(callback, attempt = 0) {
+    if (typeof window.isUserAdmin === 'function') {
+      window.isUserAdmin(callback);
       return;
     }
 
-    auth.onAuthStateChanged((user) => {
-      if (!user) {
-        callback(false);
-        return;
-      }
-      
-      user.getIdTokenResult().then((idTokenResult) => {
-        const isAdmin = idTokenResult.claims.admin === true;
-        callback(isAdmin);
-      }).catch((error) => {
-        console.error('Error checking admin status:', error);
-        callback(false);
-      });
-    });
+    if (attempt >= 20) {
+      callback(false);
+      return;
+    }
+
+    setTimeout(() => getAdminStatus(callback, attempt + 1), 50);
   }
 
   // Update nav with Firebase auth
@@ -69,7 +61,7 @@
         if (nameEl) nameEl.textContent = name.split(' ')[0];
         
         // Check admin status and show admin link
-        isUserAdmin((isAdmin) => {
+        getAdminStatus((isAdmin) => {
           const adminLink = document.getElementById('adminNavLink');
           if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
         });
@@ -97,15 +89,15 @@
         <p class="hero-subtitle">Connect with industry leaders through 1-on-1 scheduled meetings</p>
         <div class="hero-details">
           <p class="hero-detail">
-            <span class="icon">📅</span>
+            <span class="hero-detail-label">Date</span>
             <span id="eventDate">Loading...</span>
           </p>
           <p class="hero-detail">
-            <span class="icon">🕐</span>
+            <span class="hero-detail-label">Time</span>
             <span id="eventTime">Loading...</span>
           </p>
           <p class="hero-detail">
-            <span class="icon">📍</span>
+            <span class="hero-detail-label">Location</span>
             <span id="eventLocation">Loading...</span>
           </p>
         </div>
@@ -167,17 +159,14 @@
       <h2 class="section-title">Why Attend?</h2>
       <div class="features-grid">
         <div class="feature-card">
-          <div class="feature-icon">🤝</div>
           <h3>Targeted Networking</h3>
           <p>Connect with professionals in your industry</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">📅</div>
           <h3>Easy Scheduling</h3>
           <p>Book meetings with our simple interface</p>
         </div>
         <div class="feature-card">
-          <div class="feature-icon">⚡</div>
           <h3>Efficient Format</h3>
           <p>15-minute focused meetings maximize your time</p>
         </div>

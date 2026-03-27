@@ -219,7 +219,7 @@
           <td><span class="badge badge-${reg.attendeeType}">${reg.attendeeType || 'attendee'}</span></td>
           <td>
             <span class="booking-count ${hasBookings ? 'has-bookings' : ''}">
-              📅 ${bookingCount}
+              ${bookingCount}
             </span>
           </td>
           <td>${formatDate(reg.timestamp)}</td>
@@ -292,21 +292,26 @@
     const bookingFilter = document.getElementById('bookingFilter').value;
 
     filteredRegistrations = registrations.filter(reg => {
+      const regName = (reg.name || '').toLowerCase();
+      const regEmail = (reg.email || '').toLowerCase();
+      const regCompany = (reg.company || '').toLowerCase();
+
       // Search filter
       const matchesSearch = 
-        reg.name.toLowerCase().includes(searchTerm) ||
-        reg.email.toLowerCase().includes(searchTerm) ||
-        reg.company.toLowerCase().includes(searchTerm);
+        regName.includes(searchTerm) ||
+        regEmail.includes(searchTerm) ||
+        regCompany.includes(searchTerm);
 
       // Type filter
       const matchesType = typeFilter === 'all' || reg.attendeeType === typeFilter;
 
-      // Booking filter (simplified for demo)
+      // Booking filter by registration email
+      const bookingCount = bookings.filter(b => b.userEmail === reg.email).length;
       let matchesBooking = true;
       if (bookingFilter === 'has-bookings') {
-        matchesBooking = bookings.length > 0; // Simplified
+        matchesBooking = bookingCount > 0;
       } else if (bookingFilter === 'no-bookings') {
-        matchesBooking = bookings.length === 0; // Simplified
+        matchesBooking = bookingCount === 0;
       }
 
       return matchesSearch && matchesType && matchesBooking;
@@ -354,7 +359,7 @@
 
   // Clear all data
   function clearAllData() {
-    if (!confirm('⚠️ WARNING: This will delete ALL registrations and bookings. This cannot be undone. Are you absolutely sure?')) {
+    if (!confirm('WARNING: This will delete ALL registrations and bookings. This cannot be undone. Are you absolutely sure?')) {
       return;
     }
 

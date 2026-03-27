@@ -45,10 +45,15 @@
         if (nameEl) nameEl.textContent = name.split(' ')[0];
         
         // Check admin status and show admin link
-        isUserAdmin((isAdmin) => {
+        if (typeof window.isUserAdmin === 'function') {
+          window.isUserAdmin((isAdmin) => {
+            const adminLink = document.getElementById('adminNavLink');
+            if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
+          });
+        } else {
           const adminLink = document.getElementById('adminNavLink');
-          if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
-        });
+          if (adminLink) adminLink.style.display = 'none';
+        }
       } else {
         if (avatarEl) avatarEl.textContent = '?';
         if (nameEl) nameEl.textContent = 'Guest';
@@ -202,7 +207,6 @@
 
           <!-- Success Message (hidden by default) -->
           <div id="successMessage" class="success-message" style="display: none;">
-            <div class="success-icon">✓</div>
             <h3>Registration Successful!</h3>
             <p>Thank you for registering, <strong id="registrantName"></strong>.</p>
             <p>Confirmation details have been saved. You can now proceed to schedule meetings.</p>
@@ -222,13 +226,6 @@
       <p style="margin-top: 10px;"><a href="feedback.html" style="color: #60a5fa; text-decoration: none;">Send Feedback</a></p>
     </div>
   </footer> 
-
-  <!-- Auth Protection -->
-  <script>
-    if (!localStorage.getItem('currentUser')) {
-      window.location.href = 'login.html';
-    }
-  </script>
 
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -253,6 +250,17 @@
         window.location.href = 'login.html';
       }
     };
+
+    // Route protection based on Firebase auth state
+    function enforceAuthRedirect() {
+      auth.onAuthStateChanged((user) => {
+        if (!user) {
+          window.location.href = 'login.html';
+        }
+      });
+    }
+
+    enforceAuthRedirect();
   </script>
   
   <script src="js/registration.js"></script>

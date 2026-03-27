@@ -44,6 +44,7 @@ Thumbs.db
 
 # Config files with sensitive data
 firebase-config.js
+js/firebase-config.js
 config.js
 
 # Backups
