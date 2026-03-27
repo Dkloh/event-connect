@@ -1,0 +1,51 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Firebase
+.firebaserc
+firebase-debug.log
+.firebase/
+
+# Build outputs
+dist/
+build/
+*.min.js
+*.min.css
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Config files with sensitive data
+firebase-config.js
+config.js
+
+# Backups
+*.bak
+*.backup

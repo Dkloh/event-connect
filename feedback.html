@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feedback - Event Scheduler</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .feedback-container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .feedback-title {
+      font-size: 28px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #111827;
+    }
+
+    .feedback-subtitle {
+      color: #6b7280;
+      margin-bottom: 30px;
+      font-size: 16px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-textarea {
+      resize: vertical;
+      min-height: 150px;
+    }
+
+    .form-input:focus,
+    .form-textarea:focus,
+    .form-select:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .btn {
+      background-color: #2563eb;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      width: 100%;
+    }
+
+    .btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    .btn:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    .success-message {
+      display: none;
+      padding: 15px;
+      background-color: #d1fae5;
+      color: #065f46;
+      border-radius: 6px;
+      margin-top: 20px;
+      border-left: 4px solid #10b981;
+    }
+
+    .error-message {
+      display: none;
+      padding: 15px;
+      background-color: #fee2e2;
+      color: #991b1b;
+      border-radius: 6px;
+      margin-top: 20px;
+      border-left: 4px solid #ef4444;
+    }
+
+    @media (max-width: 768px) {
+      .feedback-container {
+        margin: 20px;
+        padding: 20px;
+      }
+
+      .feedback-title {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-container">
+      <h1 class="nav-logo">EventConnect</h1>
+      <div style="display: flex; gap: 20px;">
+        <a href="index.html" style="color: #2563eb; text-decoration: none;">Home</a>
+        <a href="schedule.html" style="color: #2563eb; text-decoration: none;">Schedule</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="feedback-container">
+    <h1 class="feedback-title">We'd Love Your Feedback</h1>
+    <p class="feedback-subtitle">Help us improve the Event Scheduler by sharing your thoughts and suggestions.</p>
+
+    <form id="feedbackForm" aria-label="Feedback form">
+      <div class="form-group">
+        <label for="feedbackName" class="form-label">Name (Optional)</label>
+        <input 
+          type="text" 
+          id="feedbackName" 
+          class="form-input" 
+          placeholder="Your name"
+          maxlength="100"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="feedbackEmail" class="form-label">Email (Optional)</label>
+        <input 
+          type="email" 
+          id="feedbackEmail" 
+          class="form-input" 
+          placeholder="your.email@example.com"
+          maxlength="100"
+        >
+      </div>
+
+      <div class="form-group">
+        <label for="feedbackCategory" class="form-label">Feedback Category *</label>
+        <select id="feedbackCategory" class="form-select" required aria-required="true">
+          <option value="">-- Select a category --</option>
+          <option value="bug">Bug Report</option>
+          <option value="feature">Feature Request</option>
+          <option value="improvement">Improvement Suggestion</option>
+          <option value="usability">Usability Issue</option>
+          <option value="performance">Performance Issue</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="feedbackMessage" class="form-label">Your Feedback *</label>
+        <textarea 
+          id="feedbackMessage" 
+          class="form-textarea" 
+          placeholder="Please describe your feedback in detail..."
+          required
+          aria-required="true"
+          maxlength="2000"
+        ></textarea>
+        <small style="color: #6b7280; display: block; margin-top: 5px;">
+          <span id="charCount">0</span> / 2000 characters
+        </small>
+      </div>
+
+      <button type="submit" class="btn">Submit Feedback</button>
+
+      <div id="successMessage" class="success-message" role="alert">
+        Thank you for your feedback! We'll review it shortly.
+      </div>
+
+      <div id="errorMessage" class="error-message" role="alert"></div>
+    </form>
+  </div>
+
+  <script src="js/security.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/feedback.js"></script>
+  <script>
+    // Auto-fill feedback form with logged-in user data
+    function autoFillFeedbackForm() {
+      if (typeof auth === 'undefined') {
+        setTimeout(autoFillFeedbackForm, 100);
+        return;
+      }
+
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          const nameField = document.getElementById('feedbackName');
+          const emailField = document.getElementById('feedbackEmail');
+          
+          if (nameField && !nameField.value && user.displayName) {
+            nameField.value = user.displayName;
+          }
+          
+          if (emailField && !emailField.value && user.email) {
+            emailField.value = user.email;
+          }
+        }
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', autoFillFeedbackForm);
+    } else {
+      autoFillFeedbackForm();
+    }
+  </script>
+</body>
+</html>

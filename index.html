@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Registration Demo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+  <div class="nav-container">
+    <h1 class="nav-logo">EventConnect</h1>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="register.html" class="nav-link">Register</a>
+      <a href="schedule.html" class="nav-link">Schedule</a>
+      <a href="admin.html" class="nav-link" id="adminNavLink" style="display: none;">Admin</a>
+    </div>
+    <!-- User Menu -->
+    <div class="user-menu">
+      <div class="user-info-nav">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <span id="userName">Guest</span>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<script>
+  // Check if user is admin
+  function isUserAdmin(callback) {
+    if (typeof auth === 'undefined') {
+      setTimeout(() => isUserAdmin(callback), 100);
+      return;
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        callback(false);
+        return;
+      }
+      
+      user.getIdTokenResult().then((idTokenResult) => {
+        const isAdmin = idTokenResult.claims.admin === true;
+        callback(isAdmin);
+      }).catch((error) => {
+        console.error('Error checking admin status:', error);
+        callback(false);
+      });
+    });
+  }
+
+  // Update nav with Firebase auth
+  function updateNav() {
+    if (typeof auth === 'undefined') {
+      setTimeout(updateNav, 100);
+      return;
+    }
+
+    auth.onAuthStateChanged((user) => {
+      const avatarEl = document.getElementById('userAvatar');
+      const nameEl = document.getElementById('userName');
+      
+      if (user) {
+        const name = user.displayName || user.email.split('@')[0];
+        if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+        if (nameEl) nameEl.textContent = name.split(' ')[0];
+        
+        // Check admin status and show admin link
+        isUserAdmin((isAdmin) => {
+          const adminLink = document.getElementById('adminNavLink');
+          if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
+        });
+      } else {
+        if (avatarEl) avatarEl.textContent = '?';
+        if (nameEl) nameEl.textContent = 'Guest';
+        const adminLink = document.getElementById('adminNavLink');
+        if (adminLink) adminLink.style.display = 'none';
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateNav);
+  } else {
+    updateNav();
+  }
+</script>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="container">
+      <div class="hero-content">
+        <h1 class="hero-title" id="eventName">EventConnect Conference 2026</h1>
+        <p class="hero-subtitle">Connect with industry leaders through 1-on-1 scheduled meetings</p>
+        <div class="hero-details">
+          <p class="hero-detail">
+            <span class="icon">📅</span>
+            <span id="eventDate">Loading...</span>
+          </p>
+          <p class="hero-detail">
+            <span class="icon">🕐</span>
+            <span id="eventTime">Loading...</span>
+          </p>
+          <p class="hero-detail">
+            <span class="icon">📍</span>
+            <span id="eventLocation">Loading...</span>
+          </p>
+        </div>
+        <div class="hero-actions">
+            <a href="#" id="registerBtn" class="btn btn-primary">Register Now</a>
+            <a href="#" id="scheduleBtn" class="btn btn-secondary">View Schedule</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Agenda Section -->
+  <section class="agenda">
+    <div class="container">
+      <h2 class="section-title">Event Agenda</h2>
+      <div class="agenda-grid">
+        <div class="agenda-item">
+          <div class="agenda-time">9:00 AM - 10:00 AM</div>
+          <div class="agenda-content">
+            <h3>Registration & Networking</h3>
+            <p>Check in and connect with fellow attendees</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-time">10:00 AM - 12:00 PM</div>
+          <div class="agenda-content">
+            <h3>1-on-1 Meeting Sessions</h3>
+            <p>Schedule and attend networking meetings</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-time">12:00 PM - 1:00 PM</div>
+          <div class="agenda-content">
+            <h3>Lunch Break</h3>
+            <p>Catered lunch and informal networking</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-time">1:00 PM - 4:00 PM</div>
+          <div class="agenda-content">
+            <h3>Afternoon Meeting Sessions</h3>
+            <p>Continue your scheduled meetings</p>
+          </div>
+        </div>
+        <div class="agenda-item">
+          <div class="agenda-time">4:00 PM - 5:00 PM</div>
+          <div class="agenda-content">
+            <h3>Group Mingle & Closing</h3>
+            <p>Open networking and informal hangout with all attendees</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features">
+    <div class="container">
+      <h2 class="section-title">Why Attend?</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🤝</div>
+          <h3>Targeted Networking</h3>
+          <p>Connect with professionals in your industry</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">📅</div>
+          <h3>Easy Scheduling</h3>
+          <p>Book meetings with our simple interface</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Efficient Format</h3>
+          <p>15-minute focused meetings maximize your time</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 EventConnect Demo. Built to demonstrate event technology implementation skills.</p>
+      <p style="margin-top: 10px;"><a href="feedback.html" style="color: #60a5fa; text-decoration: none;">Send Feedback</a></p>
+    </div>
+  </footer>
+
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <!-- App Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-auth.js"></script>
+  
+  <script>
+    // Global logout function
+    window.handleLogout = async function() {
+      try {
+        await auth.signOut();
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Logout error:', error);
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+      // Populate event info (with null checks)
+      if (document.getElementById('eventName')) {
+        document.getElementById('eventName').textContent = eventConfig.eventName;
+      }
+      if (document.getElementById('eventDate')) {
+        document.getElementById('eventDate').textContent = eventConfig.eventDate;
+      }
+      if (document.getElementById('eventTime')) {
+        document.getElementById('eventTime').textContent = eventConfig.eventTime + ' ' + eventConfig.timezone;
+      }
+      if (document.getElementById('eventLocation')) {
+        document.getElementById('eventLocation').textContent = eventConfig.location;
+      }
+      
+      // Apply theme colors
+      document.documentElement.style.setProperty('--primary-color', eventConfig.theme.primaryColor);
+      document.documentElement.style.setProperty('--secondary-color', eventConfig.theme.secondaryColor);
+      document.documentElement.style.setProperty('--accent-color', eventConfig.theme.accentColor);
+
+      // Update navigation
+      function updateNavDisplay(user) {
+        const avatarEl = document.getElementById('userAvatar');
+        const nameEl = document.getElementById('userName');
+        
+        if (user) {
+          if (avatarEl) avatarEl.textContent = user.name.charAt(0).toUpperCase();
+          if (nameEl) nameEl.textContent = user.name.split(' ')[0];
+        } else {
+          if (avatarEl) avatarEl.textContent = '?';
+          if (nameEl) nameEl.textContent = 'Guest';
+        }
+      }
+
+      // Update buttons
+      function updateButtons(isLoggedIn) {
+        const registerBtn = document.getElementById('registerBtn');
+        const scheduleBtn = document.getElementById('scheduleBtn');
+        
+        if (registerBtn) {
+          registerBtn.href = isLoggedIn ? 'register.html' : 'login.html';
+        }
+        
+        if (scheduleBtn) {
+          scheduleBtn.href = isLoggedIn ? 'schedule.html' : 'login.html';
+        }
+      }
+
+      // Auth state listener
+      auth.onAuthStateChanged((firebaseUser) => {
+        if (firebaseUser) {
+          const userData = {
+            name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+            email: firebaseUser.email
+          };
+          updateNavDisplay(userData);
+          updateButtons(true);
+        } else {
+          updateNavDisplay(null);
+          updateButtons(false);
+        }
+      });
+    });
+  </script>
+</body>
+</html>

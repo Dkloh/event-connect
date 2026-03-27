@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Event Management</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+  <div class="nav-container">
+    <h1 class="nav-logo">EventConnect</h1>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="register.html" class="nav-link">Register</a>
+      <a href="schedule.html" class="nav-link">Schedule</a>
+      <a href="admin.html" class="nav-link">Admin</a>
+    </div>
+    <!-- User Menu -->
+    <div class="user-menu">
+      <div class="user-info-nav">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <span id="userName">Guest</span>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()">Logout</button>
+    </div>
+  </div>
+</nav>
+
+<script>
+  // Check if user is admin (will use the one from firebase-auth.js)
+  function checkAdminAccessOnLoad() {
+    if (typeof isUserAdmin === 'undefined') {
+      setTimeout(checkAdminAccessOnLoad, 100);
+      return;
+    }
+
+    // Call the global isUserAdmin function
+    isUserAdmin((isAdmin) => {
+      const adminSection = document.getElementById('adminDashboard');
+      const accessCheck = document.getElementById('adminAccessCheck');
+      
+      if (isAdmin) {
+        if (adminSection) adminSection.style.display = 'block';
+        if (accessCheck) accessCheck.style.display = 'none';
+      } else {
+        if (adminSection) adminSection.style.display = 'none';
+        if (accessCheck) accessCheck.style.display = 'block';
+      }
+    });
+  }
+
+  // Update nav with Firebase auth
+  function updateNav() {
+    if (typeof auth === 'undefined') {
+      setTimeout(updateNav, 100);
+      return;
+    }
+
+    auth.onAuthStateChanged((user) => {
+      const avatarEl = document.getElementById('userAvatar');
+      const nameEl = document.getElementById('userName');
+      
+      if (user) {
+        const name = user.displayName || user.email.split('@')[0];
+        if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+        if (nameEl) nameEl.textContent = name.split(' ')[0];
+      } else {
+        if (avatarEl) avatarEl.textContent = '?';
+        if (nameEl) nameEl.textContent = 'Guest';
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateNav);
+    document.addEventListener('DOMContentLoaded', checkAdminAccessOnLoad);
+  } else {
+    updateNav();
+    checkAdminAccessOnLoad();
+  }
+</script>
+
+  <!-- Admin Access Check -->
+  <div id="adminAccessCheck" style="display: none; text-align: center; padding: 60px 20px;">
+    <h1 style="color: #dc2626; margin-bottom: 20px;">Access Denied</h1>
+    <p style="font-size: 18px; color: #666; margin-bottom: 30px;">You need admin privileges to access this page.</p>
+    <a href="index.html" class="btn btn-primary">Go Back Home</a>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <section class="admin-section" id="adminDashboard" style="display: none;">
+    <div class="container-wide">
+      
+      <!-- Dashboard Header -->
+      <div class="dashboard-header">
+        <div>
+          <h1 class="dashboard-title">Event Admin Dashboard</h1>
+          <p class="dashboard-subtitle" id="eventNameAdmin">Loading...</p>
+        </div>
+        <div class="dashboard-actions">
+          <button id="exportCSVBtn" class="btn btn-primary">
+            📊 Export CSV
+          </button>
+          <button id="clearDataBtn" class="btn btn-secondary">
+            🗑️ Clear All Data
+          </button>
+        </div>
+      </div>
+
+      <!-- Statistics Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-content">
+            <div class="stat-value" id="totalRegistrations">0</div>
+            <div class="stat-label">Total Registrations</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">📅</div>
+          <div class="stat-content">
+            <div class="stat-value" id="totalBookings">0</div>
+            <div class="stat-label">Total Bookings</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <div class="stat-value" id="completionRate">0%</div>
+            <div class="stat-label">Booking Completion Rate</div>
+          </div>
+        </div>
+        
+        <div class="stat-card">
+          <div class="stat-icon">⏰</div>
+          <div class="stat-content">
+            <div class="stat-value" id="avgBookingsPerPerson">0</div>
+            <div class="stat-label">Avg Bookings/Person</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Slot Availability -->
+      <div class="table-container">
+        <h3>📆 Time Slot Availability</h3>
+        <div id="slotAvailability" class="slot-availability">
+          <!-- Generated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Filters and Search -->
+      <div class="admin-controls">
+        <div class="search-box">
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="🔍 Search by name, email, or company..."
+          >
+        </div>
+        <div class="filter-group">
+          <label for="typeFilter" class="filter-label">Filter by Type:</label>
+          <select id="typeFilter" class="filter-select">
+            <option value="all">All Types</option>
+            <!-- Populated by JavaScript -->
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="bookingFilter" class="filter-label">Booking Status:</label>
+          <select id="bookingFilter" class="filter-select">
+            <option value="all">All</option>
+            <option value="has-bookings">Has Bookings</option>
+            <option value="no-bookings">No Bookings</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Registrations Table -->
+      <div class="table-container">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Company</th>
+              <th>Type</th>
+              <th>Bookings</th>
+              <th>Registered</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="registrationsTable">
+            <tr>
+              <td colspan="7" class="empty-table">No registrations yet</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Attendee Type Breakdown -->
+      <div class="chart-section">
+        <h3 class="chart-title">Attendee Type Breakdown</h3>
+        <div id="typeBreakdownChart" class="type-breakdown-chart">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="deleteModal" class="modal" style="display: none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <h3 class="modal-title">⚠️ Confirm Deletion</h3>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this registration?</p>
+        <p class="modal-warning">This will also remove all their bookings and cannot be undone.</p>
+      </div>
+      <div class="modal-actions">
+        <button id="confirmDeleteBtn" class="btn btn-danger">Delete</button>
+        <button id="cancelDeleteBtn" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 EventConnect Demo. Admin Dashboard for Event Management.</p>
+    </div>
+  </footer>
+
+<!-- Auth Protection -->
+  <script>
+    if (!localStorage.getItem('currentUser')) {
+      window.location.href = 'login.html';
+    }
+  </script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-auth.js"></script>
+  
+  <script>
+    // Global logout
+    window.handleLogout = async function() {
+      try {
+        await auth.signOut();
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Logout error:', error);
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      }
+    };
+
+    // Migrate registrations from localStorage to Firestore (one-time)
+    async function migrateRegistrationsToFirestore() {
+      try {
+        const savedRegs = localStorage.getItem('registrations');
+        if (!savedRegs) return;
+
+        const registrations = JSON.parse(savedRegs);
+        if (registrations.length === 0) return;
+
+        const db = firebase.firestore();
+        let migratedCount = 0;
+
+        for (const reg of registrations) {
+          try {
+            // Check if already migrated
+            const existing = await db.collection('registrations')
+              .where('email', '==', reg.email)
+              .get();
+
+            if (existing.empty) {
+              // Migrate to Firestore
+              await db.collection('registrations').add({
+                name: reg.name || '',
+                email: reg.email || '',
+                company: reg.company || '',
+                role: reg.role || '',
+                interests: reg.interests || '',
+                attendeeType: reg.attendeeType || '',
+                timestamp: new Date(reg.timestamp),
+                eventName: reg.eventName || ''
+              });
+              migratedCount++;
+            }
+          } catch (error) {
+            console.warn('Failed to migrate registration:', reg.email, error);
+          }
+        }
+
+        if (migratedCount > 0) {
+        }
+      } catch (error) {
+      }
+    }
+
+    // Run migration on page load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', migrateRegistrationsToFirestore);
+    } else {
+      migrateRegistrationsToFirestore();
+    }
+  </script>
+  
+  <script src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Schedule Meetings - Event Registration Demo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+  <div class="nav-container">
+    <h1 class="nav-logo">EventConnect</h1>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="register.html" class="nav-link">Register</a>
+      <a href="schedule.html" class="nav-link">Schedule</a>
+      <a href="admin.html" class="nav-link" id="adminNavLink" style="display: none;">Admin</a>
+    </div>
+    <!-- User Menu -->
+    <div class="user-menu">
+      <div class="user-info-nav">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <span id="userName">Guest</span>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()">Logout</button>
+    </div>
+  </div>
+</nav>
+<script>
+  // Update nav with Firebase auth
+  function updateNav() {
+    if (typeof auth === 'undefined') {
+      setTimeout(updateNav, 100);
+      return;
+    }
+
+    auth.onAuthStateChanged((user) => {
+      const avatarEl = document.getElementById('userAvatar');
+      const nameEl = document.getElementById('userName');
+      
+      if (user) {
+        const name = user.displayName || user.email.split('@')[0];
+        if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+        if (nameEl) nameEl.textContent = name.split(' ')[0];
+        
+        // Check admin status and show admin link
+        isUserAdmin((isAdmin) => {
+          const adminLink = document.getElementById('adminNavLink');
+          if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
+        });
+      } else {
+        if (avatarEl) avatarEl.textContent = '?';
+        if (nameEl) nameEl.textContent = 'Guest';
+        const adminLink = document.getElementById('adminNavLink');
+        if (adminLink) adminLink.style.display = 'none';
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateNav);
+  } else {
+    updateNav();
+  }
+</script>
+
+  <!-- Scheduler Section -->
+  <section class="scheduler-section">
+    <div class="container">
+      
+      <!-- Check if user is registered -->
+      <div id="notRegistered" class="alert alert-warning" style="display: none;">
+        <h3>⚠️ Registration Required</h3>
+        <p id="regMessage">You need to register for the event before you can schedule meetings.</p>
+        <div style="margin-top: 15px;">
+          <a id="regActionBtn" href="register.html" class="btn btn-primary">Register for Event</a>
+          <a id="regAltBtn" href="login.html" class="btn btn-secondary" style="display: none;">Login First</a>
+        </div>
+      </div>
+
+      <!-- Main Scheduler Interface -->
+      <div id="schedulerInterface" style="display: none;">
+        
+        <!-- User Info Banner -->
+        <div class="user-banner">
+          <div class="user-info">
+            <h2>Welcome, <span id="welcomeUserName"></span>!</h2>
+            <p>📅 Schedule your <strong>1-on-1 meetings</strong> for <strong id="schedulerEventName"></strong></p>
+          </div>
+          <div class="booking-stats">
+            <div class="stat">
+              <span class="stat-number" id="bookedCount">0</span>
+              <span class="stat-label">Booked</span>
+            </div>
+            <div class="stat">
+              <span class="stat-number" id="remainingCount">5</span>
+              <span class="stat-label">Remaining</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Event Timeline/Agenda -->
+        <div style="background: #f3f4f6; border-radius: 8px; padding: 20px; margin-bottom: 30px; border-left: 4px solid #2563eb;">
+          <h3 style="margin-top: 0; color: #1f2937;">📅 Event Schedule</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+            <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-weight: 600; color: #2563eb; margin-bottom: 5px;">9:00 AM - 10:00 AM</div>
+              <div style="color: #374151; font-size: 14px;">Registration & Networking</div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-weight: 600; color: #2563eb; margin-bottom: 5px;">10:00 AM - 12:00 PM</div>
+              <div style="color: #374151; font-size: 14px;">1-on-1 Meeting Sessions ✓</div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-weight: 600; color: #2563eb; margin-bottom: 5px;">12:00 PM - 1:00 PM</div>
+              <div style="color: #374151; font-size: 14px;">Lunch Break</div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-weight: 600; color: #2563eb; margin-bottom: 5px;">1:00 PM - 4:00 PM</div>
+              <div style="color: #374151; font-size: 14px;">1-on-1 Meeting Sessions ✓</div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 6px; border: 1px solid #e5e7eb;">
+              <div style="font-weight: 600; color: #2563eb; margin-bottom: 5px;">4:00 PM - 5:00 PM</div>
+              <div style="color: #374151; font-size: 14px;">Group Mingle & Closing</div>
+            </div>
+          </div>
+          <p style="margin: 15px 0 0 0; font-size: 13px; color: #6b7280;">Book 15-minute slots during meeting sessions above</p>
+        </div>
+
+        <!-- Scheduler Grid Container -->
+        <div class="scheduler-container">
+          
+          <!-- Time Slots Section -->
+          <div class="scheduler-main">
+            <div class="section-header">
+              <h3>Available Time Slots</h3>
+              <p class="section-description">
+                Click on a time slot to book a meeting 
+                (<strong id="meetingDuration"></strong> minute meetings)
+              </p>
+            </div>
+
+            <!-- Time Slots Grid -->
+            <div id="timeSlotsGrid" class="time-slots-grid">
+              <!-- Time slots will be generated by JavaScript -->
+            </div>
+
+            <!-- Legend -->
+            <div class="scheduler-legend">
+              <div class="legend-item">
+                <span class="legend-dot available"></span>
+                <span>Available</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot booked"></span>
+                <span>Your Bookings</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot unavailable"></span>
+                <span>Unavailable</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar: My Bookings -->
+          <div class="scheduler-sidebar">
+            <h3 class="sidebar-title">My Schedule</h3>
+            
+            <div id="noBookings" class="empty-state">
+              <div class="empty-icon">📅</div>
+              <p>No meetings scheduled yet</p>
+              <p class="empty-help">Select time slots to book meetings</p>
+            </div>
+
+            <div id="bookingsList" class="bookings-list">
+              <!-- Booked meetings will appear here -->
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="sidebar-actions">
+              <button id="clearAllBtn" class="btn btn-secondary btn-block" style="display: none;">
+                Clear All Bookings
+              </button>
+              <button id="exportBtn" class="btn btn-outline btn-block" style="display: none;">
+                Export Schedule
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Booking Confirmation Modal -->
+  <div id="bookingModal" class="modal" style="display: none;">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <h3 class="modal-title">Confirm Booking</h3>
+      <div class="modal-body">
+        <p>Book a meeting at:</p>
+        <div class="booking-details">
+          <div class="booking-detail-item">
+            <span class="detail-label">Time:</span>
+            <span class="detail-value" id="modalTime"></span>
+          </div>
+          <div class="booking-detail-item">
+            <span class="detail-label">Duration:</span>
+            <span class="detail-value" id="modalDuration"></span>
+          </div>
+        </div>
+        <p class="modal-note">You can cancel this booking anytime from your schedule.</p>
+      </div>
+      <div class="modal-actions">
+        <button id="confirmBookingBtn" class="btn btn-primary">Confirm Booking</button>
+        <button id="cancelBookingBtn" class="btn btn-secondary">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 EventConnect Demo. Built to demonstrate event technology implementation skills.</p>
+      <p style="margin-top: 10px;"><a href="feedback.html" style="color: #60a5fa; text-decoration: none;">Send Feedback</a></p>
+    </div>
+  </footer>
+
+ <!-- Auth Protection -->
+  <script>
+    if (!localStorage.getItem('currentUser')) {
+      window.location.href = 'login.html';
+    }
+  </script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-auth.js"></script>
+  
+  <script>
+    // Global logout
+    window.handleLogout = async function() {
+      try {
+        await auth.signOut();
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Logout error:', error);
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      }
+    };
+  </script>
+  
+  <script src="js/scheduler.js"></script>
+</body>
+</html>

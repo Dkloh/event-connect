@@ -1,0 +1,16 @@
+{
+  "name": "event-scheduler",
+  "version": "1.0.0",
+  "description": "Professional event scheduling application with Firebase authentication",
+  "scripts": {
+    "start": "python -m http.server 8000 --bind 127.0.0.1",
+    "deploy": "firebase deploy"
+  },
+  "keywords": [
+    "event",
+    "scheduler",
+    "firebase"
+  ],
+  "author": "",
+  "license": "MIT"
+}

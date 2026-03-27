@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Setup - Event Scheduler</title>
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    .setup-container {
+      max-width: 500px;
+      margin: 60px auto;
+      padding: 30px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .setup-title {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #111827;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #374151;
+    }
+    .form-input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn:hover {
+      background-color: #1d4ed8;
+    }
+    .btn:disabled {
+      background-color: #9ca3af;
+      cursor: not-allowed;
+    }
+    .message {
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .message.success {
+      background-color: #d1fae5;
+      color: #065f46;
+      border: 1px solid #6ee7b7;
+      display: block;
+    }
+    .message.error {
+      background-color: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+      display: block;
+    }
+    .warning {
+      background-color: #fef3c7;
+      color: #92400e;
+      padding: 12px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      border: 1px solid #fcd34d;
+    }
+  </style>
+</head>
+<body>
+  <div class="setup-container">
+    <h1 class="setup-title">🔐 Admin Setup</h1>
+    
+    <div class="warning">
+      <strong>⚠️ Important:</strong> You need to be logged in and have a backend endpoint to set admin claims. This is a temporary workaround.
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <div class="form-group">
+      <label class="form-label">User UID (from Firebase Console)</label>
+      <input type="text" id="uid" class="form-input" placeholder="e.g., abc123def456...">
+      <p style="font-size: 12px; color: #6b7280; margin-top: 5px;">Find this in Firebase Console → Authentication → Users</p>
+    </div>
+
+    <button class="btn" onclick="setAdminClaim()">Set as Admin</button>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      <h3 style="margin-bottom: 10px; color: #374151;">Can't find the UID?</h3>
+      <p style="color: #6b7280; font-size: 14px; margin-bottom: 15px;">Follow these steps:</p>
+      <ol style="color: #6b7280; font-size: 14px; padding-left: 20px;">
+        <li>Go to <a href="https://console.firebase.google.com" target="_blank" style="color: #2563eb;">Firebase Console</a></li>
+        <li>Select your project</li>
+        <li>Click <strong>Authentication</strong> → <strong>Users</strong></li>
+        <li>Find the user by email</li>
+        <li>Copy the User UID (the long ID on the right)</li>
+        <li>Paste it above and click "Set as Admin"</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+  
+  <script src="js/config.js"></script>
+  <script src="js/firebase-config.js"></script>
+
+  <script>
+    function showMessage(text, type) {
+      const msgEl = document.getElementById('message');
+      msgEl.textContent = text;
+      msgEl.className = 'message ' + type;
+    }
+
+    async function setAdminClaim() {
+      const uid = document.getElementById('uid').value.trim();
+      
+      if (!uid) {
+        showMessage('Please enter a User UID', 'error');
+        return;
+      }
+
+      const btn = event.target;
+      btn.disabled = true;
+      btn.textContent = 'Setting admin...';
+
+      try {
+        // Call a Cloud Function to set admin claim
+        const functions = firebase.functions();
+        const setAdminClaim = functions.httpsCallable('setAdminClaim');
+        
+        const result = await setAdminClaim({ uid: uid });
+        
+        showMessage('✅ User is now an admin! They can refresh their page to see the Admin link.', 'success');
+        document.getElementById('uid').value = '';
+      } catch (error) {
+        console.error('Error:', error);
+        
+        // User-friendly error messages
+        if (error.code === 'functions/unauthenticated') {
+          showMessage('❌ You need to be logged in to set admin claims.', 'error');
+        } else if (error.code === 'functions/permission-denied') {
+          showMessage('❌ You don\'t have permission to set admin claims.', 'error');
+        } else {
+          showMessage('❌ Error: ' + error.message, 'error');
+        }
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Set as Admin';
+      }
+    }
+
+    // Allow Enter key to submit
+    document.getElementById('uid').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        setAdminClaim();
+      }
+    });
+  </script>
+</body>
+</html>

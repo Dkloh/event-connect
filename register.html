@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register - Event Registration Demo</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="nav">
+  <div class="nav-container">
+    <h1 class="nav-logo">EventConnect</h1>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link">Home</a>
+      <a href="register.html" class="nav-link">Register</a>
+      <a href="schedule.html" class="nav-link">Schedule</a>
+      <a href="admin.html" class="nav-link" id="adminNavLink" style="display: none;">Admin</a>
+    </div>
+    <!-- User Menu -->
+    <div class="user-menu">
+      <div class="user-info-nav">
+        <div class="user-avatar" id="userAvatar">?</div>
+        <span id="userName">Guest</span>
+      </div>
+      <button class="btn-logout" onclick="handleLogout()">Logout</button>
+    </div>
+  </div>
+</nav>
+<script>
+  // Update nav with Firebase auth
+  function updateNav() {
+    if (typeof auth === 'undefined') {
+      setTimeout(updateNav, 100);
+      return;
+    }
+
+    auth.onAuthStateChanged((user) => {
+      const avatarEl = document.getElementById('userAvatar');
+      const nameEl = document.getElementById('userName');
+      
+      if (user) {
+        const name = user.displayName || user.email.split('@')[0];
+        if (avatarEl) avatarEl.textContent = name.charAt(0).toUpperCase();
+        if (nameEl) nameEl.textContent = name.split(' ')[0];
+        
+        // Check admin status and show admin link
+        isUserAdmin((isAdmin) => {
+          const adminLink = document.getElementById('adminNavLink');
+          if (adminLink) adminLink.style.display = isAdmin ? 'inline-block' : 'none';
+        });
+      } else {
+        if (avatarEl) avatarEl.textContent = '?';
+        if (nameEl) nameEl.textContent = 'Guest';
+        const adminLink = document.getElementById('adminNavLink');
+        if (adminLink) adminLink.style.display = 'none';
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', updateNav);
+  } else {
+    updateNav();
+  }
+
+  // Auto-fill form with logged-in user data
+  function autoFillUserData() {
+    if (typeof auth === 'undefined') {
+      setTimeout(autoFillUserData, 100);
+      return;
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        const nameField = document.getElementById('name');
+        const emailField = document.getElementById('email');
+        
+        if (nameField && !nameField.value && user.displayName) {
+          nameField.value = user.displayName;
+        }
+        
+        if (emailField && !emailField.value && user.email) {
+          emailField.value = user.email;
+        }
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', autoFillUserData);
+  } else {
+    autoFillUserData();
+  }
+</script>
+
+  <!-- Registration Section -->
+  <section class="form-section">
+    <div class="container">
+      <div class="form-container">
+        <h1 class="form-title">Event Registration</h1>
+        <p class="form-subtitle">Register for <span id="formEventName"></span></p>
+
+        <!-- Registration Form -->
+        <form id="registrationForm" class="form">
+          
+          <!-- Required Fields Section -->
+          <div class="form-group">
+            <label for="name" class="form-label">
+              Full Name <span class="required">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="name" 
+              name="name" 
+              class="form-input" 
+              required
+              placeholder="John Doe"
+            >
+            <span class="form-error" id="name-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="email" class="form-label">
+              Email Address <span class="required">*</span>
+            </label>
+            <input 
+              type="email" 
+              id="email" 
+              name="email" 
+              class="form-input" 
+              required
+              placeholder="john@company.com"
+            >
+            <span class="form-error" id="email-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="company" class="form-label">
+              Company <span class="required">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="company" 
+              name="company" 
+              class="form-input" 
+              required
+              placeholder="Acme Corp"
+            >
+            <span class="form-error" id="company-error"></span>
+          </div>
+
+          <!-- Attendee Type (drives conditional fields) -->
+          <div class="form-group">
+            <label for="attendeeType" class="form-label">
+              Attendee Type <span class="required">*</span>
+            </label>
+            <select 
+              id="attendeeType" 
+              name="attendeeType" 
+              class="form-input" 
+              required
+            >
+              <option value="">Select type...</option>
+              <!-- Options populated by JavaScript from config -->
+            </select>
+            <span class="form-help">Different attendee types may have additional fields</span>
+          </div>
+
+          <!-- Optional Fields Section -->
+          <div class="form-group">
+            <label for="role" class="form-label">Role/Title</label>
+            <input 
+              type="text" 
+              id="role" 
+              name="role" 
+              class="form-input" 
+              placeholder="Software Engineer"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="interests" class="form-label">Areas of Interest</label>
+            <textarea 
+              id="interests" 
+              name="interests" 
+              class="form-input" 
+              rows="3"
+              placeholder="AI/ML, Cloud Computing, Startups..."
+            ></textarea>
+          </div>
+
+          <!-- Conditional Fields Container -->
+          <div id="conditionalFields" class="conditional-section">
+            <!-- Conditional fields will be injected here by JavaScript -->
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="btn btn-primary btn-block">
+            Complete Registration
+          </button>
+
+          <!-- Success Message (hidden by default) -->
+          <div id="successMessage" class="success-message" style="display: none;">
+            <div class="success-icon">✓</div>
+            <h3>Registration Successful!</h3>
+            <p>Thank you for registering, <strong id="registrantName"></strong>.</p>
+            <p>Confirmation details have been saved. You can now proceed to schedule meetings.</p>
+            <a href="schedule.html" class="btn btn-primary" style="margin-top: 1rem;">
+              Schedule Meetings
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 EventConnect Demo. Built to demonstrate event technology implementation skills.</p>
+      <p style="margin-top: 10px;"><a href="feedback.html" style="color: #60a5fa; text-decoration: none;">Send Feedback</a></p>
+    </div>
+  </footer> 
+
+  <!-- Auth Protection -->
+  <script>
+    if (!localStorage.getItem('currentUser')) {
+      window.location.href = 'login.html';
+    }
+  </script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <!-- App Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-auth.js"></script>
+  
+  <script>
+    // Global logout
+    window.handleLogout = async function() {
+      try {
+        await auth.signOut();
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      } catch (error) {
+        console.error('Logout error:', error);
+        localStorage.removeItem('currentUser');
+        window.location.href = 'login.html';
+      }
+    };
+  </script>
+  
+  <script src="js/registration.js"></script>
+  <script>
+    document.getElementById('registrationForm').addEventListener('submit', function(event) {
+        let isValid = true;
+        // Validate fields
+        const email = document.getElementById('email').value;
+        if (!email.includes('@')) {
+            alert('Please enter a valid email.');
+            isValid = false;
+        }
+        // Add more validation as needed
+        if (!isValid) {
+            event.preventDefault();
+        }
+    });
+  </script>
+</body>
+</html>
